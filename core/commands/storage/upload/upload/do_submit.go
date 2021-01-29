@@ -45,7 +45,7 @@ func doSubmit(rss *sessions.RenterSession, offlineSigning bool) (*escrowpb.Signe
 	if err != nil {
 		return nil, err
 	} else {
-		log.Info("contract submitted to escrow", "channel_id", submitContractRes.Result.BuyerChannelState.Channel.Id.Id)
+		fmt.Println("contract submitted to escrow", "channel_id", submitContractRes.Result.BuyerChannelState.Channel.Id.Id)
 	}
 	return submitContractRes, nil
 }
