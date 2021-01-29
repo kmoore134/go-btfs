@@ -2,11 +2,12 @@ package upload
 
 import (
 	"context"
-
 	"github.com/TRON-US/go-btfs/core/commands/storage/upload/escrow"
 	uh "github.com/TRON-US/go-btfs/core/commands/storage/upload/helper"
 	"github.com/TRON-US/go-btfs/core/commands/storage/upload/sessions"
+	lgr "github.com/TRON-US/go-btfs/logger"
 	renterpb "github.com/TRON-US/go-btfs/protos/renter"
+	"go.uber.org/zap"
 
 	config "github.com/TRON-US/go-btfs-config"
 	"github.com/tron-us/go-btfs-common/crypto"
@@ -84,6 +85,8 @@ func pay(rss *sessions.RenterSession, result *escrowpb.SignedSubmitContractResul
 	return doGuard(rss, payinRes, fileSize, offlineSigning)
 }
 
+var payInLog = lgr.InitLogger("payin")
+
 func payInToEscrow(ctx context.Context, configuration *config.Config, signedPayinReq *escrowpb.SignedPayinRequest) (*escrowpb.SignedPayinResult, error) {
 	var signedPayinRes *escrowpb.SignedPayinResult
 	err := grpc.EscrowClient(configuration.Services.EscrowDomain).WithContext(ctx,
@@ -91,8 +94,12 @@ func payInToEscrow(ctx context.Context, configuration *config.Config, signedPayi
 			res, err := client.PayIn(ctx, signedPayinReq)
 			if err != nil {
 				log.Error(err)
+				if res != nil && res.Result != nil {
+					payInLog.Error(err.Error(), zap.Any("channel_id", res.Result.ChannelId))
+				}
 				return err
 			}
+
 			err = escrow.VerifyEscrowRes(configuration, res.Result, res.EscrowSignature)
 			if err != nil {
 				log.Error(err)
