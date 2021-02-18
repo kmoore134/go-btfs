@@ -47,8 +47,10 @@ else
     btfs config --bool Experimental.Analytics true
     btfs config Datastore.StorageMax 10TiB
   fi
-  btfs config Addresses.API /ip4/0.0.0.0/tcp/5001
+  btfs config Addresses.API /ip4/127.0.0.1/tcp/5001
   btfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
+  btfs config --json 'API.HTTPHeaders.Access-Control-Allow-Origin' '["*"]'
+  btfs config --json 'API.HTTPHeaders.Access-Control-Allow-Methods' '["PUT","POST"]'
 
   # Set up the swarm key, if provided
 
@@ -77,5 +79,11 @@ else
   unset BTFS_SWARM_KEY_FILE
 
 fi
+
+export ENABLE_WALLET_REMOTE=false
+export DISABLED_NO_REMOTE=false
+
+
+/usr/local/bin/simpleproxy -d -L 0.0.0.0:9501 -R 127.0.0.1:5001
 
 exec btfs "$@"

@@ -5,6 +5,7 @@ MAINTAINER TRON-US <support@tron.network>
 RUN apt-get update && apt-get install -y \
   libssl-dev \
   ca-certificates \
+  simpleproxy \
   fuse
 
 ENV SRC_DIR /go-btfs
@@ -63,6 +64,7 @@ COPY --from=0 $SRC_DIR/bin/container_daemon /usr/local/bin/start_btfs
 COPY --from=0 /tmp/su-exec/su-exec-static /sbin/su-exec
 COPY --from=0 /tmp/tini /sbin/tini
 COPY --from=0 /bin/fusermount /usr/local/bin/fusermount
+COPY --from=0 /usr/bin/simpleproxy /usr/local/bin/simpleproxy
 COPY --from=0 /etc/ssl/certs /etc/ssl/certs
 
 # Add suid bit on fusermount so it will run properly
@@ -81,7 +83,7 @@ COPY --from=0 /usr/lib/*-linux-gnu*/libcrypto.so* /usr/lib/
 # Swarm TCP; should be exposed to the public
 EXPOSE 4001
 # Daemon API; must not be exposed publicly but to client services under you control
-EXPOSE 5001
+EXPOSE 9501
 # Web Gateway; can be exposed publicly with a proxy, e.g. as https://ipfs.example.org
 EXPOSE 8080
 # Swarm Websockets; must be exposed publicly when the node is listening using the websocket transport (/ipX/.../tcp/8081/ws).
